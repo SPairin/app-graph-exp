@@ -149,4 +149,195 @@ if compare_mode:
         line=dict(color='#ff7f0e', width=3, dash='dot'),
         hovertemplate='<b>x</b>: %{x:.3f}<br><b>y</b>: %{y:.3f}<extra></extra>'
     ))
-    if c
+    if c2 != c:
+        fig.add_trace(go.Scatter(
+            x=[x_min, x_max],
+            y=[c2, c2],
+            mode='lines',
+            name=f'เส้นกำกับ Graph 2 (y = {c2})',
+            line=dict(color='orange', dash='dash', width=1.5)
+        ))
+
+# ---------------------------------------------------------
+# Annotations ชี้ตำแหน่งสำคัญบนกราฟ
+# ---------------------------------------------------------
+# คำนวณทิศทางการเติบโต dy/dx = α · β · ln(a) · a^(β(x-h))
+growth_rate = alpha * beta * np.log(a) if a > 0 else 0
+
+if show_annotations:
+    # Annotation จุดตัดแกน Y
+    if x_min <= 0 <= x_max:
+        fig.add_annotation(
+            x=0,
+            y=y_intercept,
+            text=f"📍 จุดตัดแกน Y: (0, {y_intercept:.2f})",
+            showarrow=True,
+            arrowhead=2,
+            arrowcolor="purple",
+            ax=55,
+            ay=-40,
+            bgcolor="rgba(255, 255, 255, 0.9)",
+            bordercolor="purple",
+            borderwidth=1
+        )
+    
+    # Annotation เส้นกำกับแนวนอน y = c
+    fig.add_annotation(
+        x=x_max,
+        y=c,
+        text=f" Horizontal Asymptote: y = {c}",
+        showarrow=False,
+        xanchor="right",
+        yanchor="bottom" if alpha >= 0 else "top",
+        font=dict(color="crimson", size=12),
+        bgcolor="rgba(255, 230, 230, 0.85)"
+    )
+
+    # Annotation บอกประเภทกราฟ
+    if np.isclose(growth_rate, 0):
+        behavior_text = "🔵 Constant Line (ฟังก์ชันคงตัว)"
+    elif growth_rate > 0:
+        behavior_text = "📈 Exponential Growth (ฟังก์ชันเพิ่ม)"
+    else:
+        behavior_text = "📉 Exponential Decay (ฟังก์ชันลด)"
+
+    mid_x = (x_min + x_max) / 2
+    mid_y = eval_exponential(mid_x, alpha, a, beta, h, c)
+
+    fig.add_annotation(
+        x=mid_x,
+        y=mid_y,
+        text=f"<b>{behavior_text}</b>",
+        showarrow=True,
+        arrowhead=1,
+        arrowcolor="#1f77b4",
+        ax=0,
+        ay=-45,
+        bgcolor="rgba(240, 248, 255, 0.9)",
+        bordercolor="#1f77b4",
+        font=dict(size=12, color="#1f77b4")
+    )
+
+# ปรับ Layout & Graph Titles
+fig.update_layout(
+    title=dict(text=f"<b>{custom_title}</b>", font=dict(size=18)),
+    xaxis_title=custom_xlabel,
+    yaxis_title=custom_ylabel,
+    hovermode="x unified",
+    template="plotly_white",
+    height=600,
+    legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01, bgcolor="rgba(255, 255, 255, 0.75)"),
+    dragmode="pan"
+)
+
+# ---------------------------------------------------------
+# 4. การแสดงผลบนหน้าจอ (Main Layout)
+# ---------------------------------------------------------
+col_graph, col_info = st.columns([3, 2])
+
+with col_graph:
+    st.plotly_chart(fig, use_container_width=True)
+    st.info("""
+    💡 **วิธี Zoom & Control มุมมอง:**
+    - **Zoom In / Zoom Out:** หมุน Scroll Wheel ของเมาส์ หรือใช้เครื่องมือ Zoom บนมุมขวาของกราฟ
+    - **Pan (ลากขยับมุมมอง):** คลิกเมาส์ค้างแล้วลากไปมาได้อย่างอิสระ
+    - **Reset View:** ดับเบิ้ลคลิกบนพื้นที่กราฟเพื่อกลับสุ่มุมมองเริ่มต้น
+    """)
+
+with col_info:
+    st.subheader("🔍 วิเคราะห์พฤติกรรมทางคณิตศาสตร์")
+    
+    # วิเคราะห์ฟังก์ชันเพิ่ม / ฟังก์ชันลด
+    if np.isclose(growth_rate, 0):
+        st.info("🔵 **ชนิดฟังก์ชัน:** ฟังก์ชันคงตัว (Constant Function)")
+    elif growth_rate > 0:
+        st.success("🟢 **ชนิดฟังก์ชัน:** ฟังก์ชันเพิ่ม (Strictly Increasing)")
+    else:
+        st.warning("🟠 **ชนิดฟังก์ชัน:** ฟังก์ชันลด (Strictly Decreasing)")
+
+    st.markdown("---")
+    st.markdown("### 📌 สรุปคุณสมบัติของ $y = \\alpha a^{\\beta(x-h)} + c$")
+    
+    # Range Calculation
+    if alpha > 0:
+        range_str = f"({c}, +\\infty)"
+    elif alpha < 0:
+        range_str = f"(-\\infty, {c})"
+    else:
+        range_str = f"\\{{{c}\\}}"
+        
+    st.write(f"- **โดเมน (Domain):** $(-\\infty, +\\infty)$")
+    st.write(f"- **เรนจ์ (Range):** ${range_str}$")
+    st.write(f"- **เส้นกำกับแนวนอน (Horizontal Asymptote):** $y = {c}$")
+    st.write(f"- **จุดตัดแกน Y (Y-intercept):** $(0, {y_intercept:.4f})$")
+
+    st.markdown("---")
+    st.markdown("### ♾️ พฤติกรรมลิมิตเมื่อ $x \\to \\pm\\infty$")
+    
+    exp_dir = beta * np.log(a) if a > 0 else 0
+    if exp_dir > 0:
+        lim_pos_x = "+∞" if alpha > 0 else ("-∞" if alpha < 0 else f"{c}")
+        lim_neg_x = f"{c}"
+    elif exp_dir < 0:
+        lim_pos_x = f"{c}"
+        lim_neg_x = "+∞" if alpha > 0 else ("-∞" if alpha < 0 else f"{c}")
+    else:
+        lim_pos_x = f"{alpha + c}"
+        lim_neg_x = f"{alpha + c}"
+
+    st.latex(r"\lim_{x \to +\infty} y = " + lim_pos_x)
+    st.latex(r"\lim_{x \to -\infty} y = " + lim_neg_x)
+
+# ---------------------------------------------------------
+# 5. แท็บรายละเอียดเพิ่มเติม
+# ---------------------------------------------------------
+st.divider()
+tab1, tab2, tab3 = st.tabs(["🧮 คำนวณค่าพิกัด (X ➔ Y)", "📋 ตารางค่า (X, Y)", "📚 อธิบายหน้าที่ของแต่ละพารามิเตอร์"])
+
+with tab1:
+    st.subheader("คำนวณค่า Y จากค่า X ที่กำหนด")
+    col_in, col_out = st.columns(2)
+    with col_in:
+        test_x = st.number_input("ป้อนค่า X:", value=1.0, step=0.5)
+    with col_out:
+        test_y = eval_exponential(test_x, alpha, a, beta, h, c)
+        st.metric(label=f"ค่า Y ของ Graph 1 ที่ X = {test_x}", value=f"{test_y:.6f}")
+        if compare_mode:
+            test_y2 = eval_exponential(test_x, alpha2, a2, beta2, h2, c2)
+            st.metric(label=f"ค่า Y ของ Graph 2 ที่ X = {test_x}", value=f"{test_y2:.6f}")
+
+with tab2:
+    st.subheader("ตารางพิกัด (X, Y)")
+    sample_x = np.linspace(x_min, x_max, 21)
+    sample_y = eval_exponential(sample_x, alpha, a, beta, h, c)
+    df_data = {"X": sample_x, "Y (Graph 1)": sample_y}
+    if compare_mode:
+        df_data["Y (Graph 2)"] = eval_exponential(sample_x, alpha2, a2, beta2, h2, c2)
+    df = pd.DataFrame(df_data)
+    st.dataframe(df.style.format("{:.4f}"), use_container_width=True)
+
+with tab3:
+    st.markdown(r"""
+    ### 📚 รายละเอียดพารามิเตอร์ในสมการ $y = \alpha a^{\beta(x - h)} + c$
+
+    1. **สัมประสิทธิ์ $\alpha$ (Vertical Stretch / Reflection):**
+       - **$\alpha > 0$:** กราฟวางตัวอยู่ **เหนือ** เส้นกำกับ $y = c$ (เรนจ์คือ $(c, +\infty)$)
+       - **$\alpha < 0$:** กราฟจะถูกสะท้อนแนวตั้งลงมาอยู่ **ใต้** เส้นกำกับ $y = c$ (เรนจ์คือ $(-\infty, c)$)
+       - ค่า $|\alpha|$ ยิ่งมาก กราฟจะยืดชันขึ้นในแนวตั้ง
+
+    2. **ฐาน $a$ (Base Value):**
+       - ต้องเป็นจำนวนจริงบวก และ $a \neq 1$
+       - หาก $a > 1$: ฐานมีลักษณะเติบโต (Growth Base)
+       - หาก $0 < a < 1$: ฐานมีลักษณะถดถอย (Decay Base)
+
+    3. **ตัวคูณกำลัง $\beta$ (Horizontal Scaling / Direction):**
+       - ควบคุมอัตราความชันแนวนอน
+       - **$\beta > 0$:** รักษาทิศทางเดิมของแกน X
+       - **$\beta < 0$:** เกิดการสะท้อนแนวนอน (Horizontal Reflection) เปลี่ยนพฤติกรรมจาก Growth เป็น Decay หรือ Decay เป็น Growth
+
+    4. **การเลื่อนแนวนอน $h$ (Horizontal Shift):**
+       - เลื่อนกราฟไปทางขวาเมื่อ $h > 0$ และเลื่อนไปทางซ้ายเมื่อ $h < 0$
+
+    5. **การเลื่อนแนวตั้งและเส้นกำกับ $c$ (Vertical Shift & Horizontal Asymptote):**
+       - เส้นตรง **$y = c$** คือเส้นกำกับแนวนอนที่กราฟจะเฉียดเข้าใกล้เรื่อยๆ เมื่อ $x \to \infty$ หรือ $x \to -\infty$
+    """)
