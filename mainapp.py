@@ -8,7 +8,7 @@ from plotly.colors import sample_colorscale
 import streamlit as st
 
 st.set_page_config(
-    page_title="เรียนรู้กราฟฟังก์ชันเอกซ์โพเนนเชียล ม.4 SCiUS UBU",
+    page_title="เรียนรู้กราฟฟังก์ชันเอกซ์โพเนนเชียล",
     page_icon="📈",
     layout="wide",
 )
@@ -190,7 +190,7 @@ st.sidebar.markdown("---")
 st.sidebar.latex(r"y = \alpha \, a^{\beta (x-h)} + c")
 st.sidebar.caption("◆ = จุดอ้างอิง (h, α + c)   ┄ = เส้นกำกับแนวนอน")
 
-st.title("📈 เรียนรู้กราฟฟังก์ชันเอกซ์โพเนนเชียล")
+st.title("📈 เรียนรู้กราฟฟังก์ชันเอกซ์โพเนนเชียล (ม.4 SCiUS UBU)")
 st.latex(r"y = \alpha \, a^{\beta (x-h)} + c")
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs(
